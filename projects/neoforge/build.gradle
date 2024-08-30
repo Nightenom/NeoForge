@@ -156,6 +156,7 @@ dependencies {
 
     userdevCompileOnly jarJar("io.github.llamalad7:mixinextras-neoforge:${project.mixin_extras_version}")
 
+    // TODO: duplicated with the text fixtures
     userdevTestImplementation("net.neoforged.fancymodloader:junit-fml:${project.fancy_mod_loader_version}")
 }
 

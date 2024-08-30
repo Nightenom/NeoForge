@@ -31,12 +31,14 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.api.tasks.testing.Test;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class NeoDevPlugin implements Plugin<Project> {
@@ -628,7 +630,7 @@ public class NeoDevPlugin implements Plugin<Project> {
     // TODO: the only point of this is to configure runs that depend on neoforge. Maybe this could be done with less code duplication...
     // TODO: Gradle says "thou shalt not referenceth otherth projects" yet here we are
     // TODO: depend on neoforge configurations that the moddev plugin also uses
-    public void configureExtra(Project project) {
+    public void configureExtra(Project project, boolean junit) {
         var neoForgeProject = project.getRootProject().getChildProjects().get("neoforge");
 
         var dependencyFactory = project.getDependencyFactory();
@@ -668,6 +670,19 @@ public class NeoDevPlugin implements Plugin<Project> {
             spec.setCanBeConsumed(false);
         });
 
+        Consumer<Configuration> configureLegacyClasspath = spec -> {
+            spec.withDependencies(set -> {
+                set.addLater(mcAndNeoFormVersion.map(v -> dependencyFactory.create("net.neoforged:neoform:" + v).capabilities(caps -> {
+                    caps.requireCapability("net.neoforged:neoform-dependencies");
+                })));
+            });
+            spec.withDependencies(set -> {
+                set.add(projectDep(dependencyFactory, neoForgeProject, "installer"));
+                set.add(projectDep(dependencyFactory, neoForgeProject, "moduleOnly"));
+                set.add(projectDep(dependencyFactory, neoForgeProject, "userdevCompileOnly"));
+            });
+        };
+
         Map<RunModel, TaskProvider<PrepareRun>> prepareRunTasks = new IdentityHashMap<>();
         extension.getRuns().all(run -> {
             var prepareRunTask = ModDevPlugin.setupRunInGradle(
@@ -677,18 +692,7 @@ public class NeoDevPlugin implements Plugin<Project> {
                     run,
                     modulesConfiguration,
                     writeNeoDevConfig,
-                    spec -> {
-                        spec.withDependencies(set -> {
-                            set.addLater(mcAndNeoFormVersion.map(v -> dependencyFactory.create("net.neoforged:neoform:" + v).capabilities(caps -> {
-                                caps.requireCapability("net.neoforged:neoform-dependencies");
-                            })));
-                        });
-                        spec.withDependencies(set -> {
-                            set.add(projectDep(dependencyFactory, neoForgeProject, "installer"));
-                            set.add(projectDep(dependencyFactory, neoForgeProject, "moduleOnly"));
-                            set.add(projectDep(dependencyFactory, neoForgeProject, "userdevCompileOnly"));
-                        });
-                    },
+                    configureLegacyClasspath,
                     additionalClasspath,
                     createArtifacts.get().getResourcesArtifact(),
                     downloadAssets.flatMap(DownloadAssetsTask::getAssetPropertiesFile));
@@ -700,6 +704,22 @@ public class NeoDevPlugin implements Plugin<Project> {
         // ModDevPlugin.configureIntelliJModel(project, ideSyncTask, extension, prepareRunTasks);
 
         // TODO: configure eclipse
+
+        if (junit) {
+            var testTask = tasks.register("testJunit", Test.class);
+
+            ModDevPlugin.setupTesting(
+                    project,
+                    neoDevBuildDir,
+                    writeNeoDevConfig,
+                    downloadAssets.flatMap(DownloadAssetsTask::getAssetPropertiesFile),
+                    ideSyncTask,
+                    createArtifacts.get().getResourcesArtifact(),
+                    configureLegacyClasspath,
+                    modulesConfiguration,
+                    testTask
+            );
+        }
     }
 
     private static ProjectDependency projectDep(DependencyFactory dependencyFactory, Project project, String configurationName) {

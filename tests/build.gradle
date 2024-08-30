@@ -8,7 +8,9 @@ plugins {
     id 'neoforge.formatting-conventions'
 }
 
-plugins.getPlugin(NeoDevPlugin).configureExtra(project)
+plugins.getPlugin(NeoDevPlugin).configureExtra(project, true)
+
+evaluationDependsOn(":neoforge")
 
 def neoforgeProject = project(':neoforge')
 def testframeworkProject = project(':testframework')
@@ -30,8 +32,17 @@ sourceSets {
         resources {
             srcDir file('src/generated/resources')
         }
+        compileClasspath += project(':neoforge').sourceSets.main.compileClasspath
+        compileClasspath += project(':neoforge').sourceSets.main.output
+        runtimeClasspath += project(':neoforge').sourceSets.main.runtimeClasspath
+        runtimeClasspath += project(':neoforge').sourceSets.main.output
     }
-    junit {}
+    junit {
+        compileClasspath += project(':neoforge').sourceSets.main.compileClasspath
+        compileClasspath += project(':neoforge').sourceSets.main.output
+        runtimeClasspath += project(':neoforge').sourceSets.main.runtimeClasspath
+        runtimeClasspath += project(':neoforge').sourceSets.main.output
+    }
 }
 
 configurations {
@@ -40,12 +51,9 @@ configurations {
         canBeConsumed = true
     }
     runtimeClasspath.extendsFrom localRuntime
-
-    junitImplementation.extendsFrom(implementation)
 }
 
 dependencies {
-    implementation project(path: ':neoforge', configuration: 'runtimeElements')
     implementation(testframeworkProject)
 
     junitImplementation(platform("org.junit:junit-bom:${project.jupiter_api_version}"))
@@ -54,16 +62,13 @@ dependencies {
 
     junitImplementation("org.assertj:assertj-core:${project.assertj_core}")
     junitImplementation "net.neoforged.fancymodloader:junit-fml:${project.fancy_mod_loader_version}"
+    junitImplementation(testframeworkProject)
 
     compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 }
 
-sourceSets {
-    main {
-        // TODO: cursed
-        compileClasspath += project(':neoforge').sourceSets.main.compileClasspath
-        runtimeClasspath += project(':neoforge').sourceSets.main.runtimeClasspath
-    }
+testJunit {
+    useJUnitPlatform()
 }
 
 neoForge {
@@ -74,6 +79,11 @@ neoForge {
         testframework {
             sourceSet project(":testframework").sourceSets.main
         }
+    }
+
+    unitTest {
+        // No need for enable(), the NeoDevPlugin already does it.
+        testedMod = project(":neoforge").neoForge.mods.minecraft
     }
 
     runs {
