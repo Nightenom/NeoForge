@@ -26,7 +26,7 @@ import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
@@ -119,8 +119,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             task.getResourcesArtifact().set(minecraftArtifactsDir.map(dir -> dir.file("minecraft-local-resources-aka-client-extra.jar")));
         });
 
-        // TODO: I think I'm missing a delete step
-        tasks.register("setup", Copy.class, task -> {
+        tasks.register("setup", Sync.class, task -> {
             task.from(project.zipTree(createSources.flatMap(CreateMinecraftArtifactsTask::getSourcesArtifact)));
             task.into(project.file("src/main/java/"));
         });
@@ -220,9 +219,8 @@ public class NeoDevPlugin implements Plugin<Project> {
             task.getRejectsFolder().set(project.getRootProject().file("rejects"));
         });
 
-        // TODO: I think I'm missing a delete step
         var mcSourcesPath = project.file("src/main/java");
-        tasks.register("setup", Copy.class, task -> {
+        tasks.register("setup", Sync.class, task -> {
             task.from(project.zipTree(applyPatches.flatMap(ApplyPatches::getPatchedJar)));
             task.into(mcSourcesPath);
         });
@@ -325,7 +323,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             task.getPatchesJar().set(neoDevBuildDir.map(dir -> dir.file("source-patches.zip")));
         });
 
-        var genPatches = tasks.register("genPatches", Copy.class, task -> {
+        var genPatches = tasks.register("genPatches", Sync.class, task -> {
             task.from(project.zipTree(genSourcePatches.flatMap(GenerateSourcePatches::getPatchesJar)));
             task.into(project.getRootProject().file("patches"));
         });
@@ -700,8 +698,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             ideSyncTask.configure(task -> task.dependsOn(prepareRunTask));
         });
 
-        // TODO this breaks, I don't understand why!
-        // ModDevPlugin.configureIntelliJModel(project, ideSyncTask, extension, prepareRunTasks);
+        ModDevPlugin.configureIntelliJModel(project, ideSyncTask, extension, prepareRunTasks);
 
         // TODO: configure eclipse
 

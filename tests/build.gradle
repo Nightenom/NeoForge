@@ -2,7 +2,6 @@ import net.neoforged.neodev.NeoDevPlugin
 
 plugins {
     id 'java'
-//    id 'net.neoforged.gradle.platform'
     id 'com.diffplug.spotless'
     id 'net.neoforged.licenser'
     id 'neoforge.formatting-conventions'
@@ -35,6 +34,15 @@ sourceSets {
     }
     junit {
     }
+}
+
+configurations {
+    // Used by the plugin to add DevLaunch
+    localRuntime {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
@@ -84,23 +92,14 @@ neoForge {
         client {
             client()
         }
-//        junit {
-//            configure neoforgeProject.runTypes.junit
-//            unitTestSource sourceSets.junit
-//        }
         server {
             server()
         }
         gameTestServer {
             type = "gameTestServer"
         }
-//        gameTestClient {
-//            configure neoforgeProject.runTypes.gameTestClient
-//        }
         data {
             data()
-
-            // TODO: should we copy the config from the neoforge project? (existing resources and stuff)
 
             programArguments.addAll '--flat', '--all', '--validate',
                     '--mod', 'data_gen_test',
@@ -118,7 +117,8 @@ neoForge {
                     '--mod', 'custom_predicate_test',
                     '--mod', 'neotests',
                     '--existing-mod', 'testframework',
-                    '--existing', sourceSets.main.resources.srcDirs[0].absolutePath
+                    '--existing', project.file("src/main/resources").absolutePath,
+                    '--output', project.file("src/generated/resources").absolutePath
         }
     }
 
@@ -128,18 +128,7 @@ neoForge {
 
         gameDirectory.set project.file("runs/${it.name}") as File
     }
-//    runs.junit.modSources.all().get().values().remove(sourceSets.main)
 }
-
-//afterEvaluate {
-//    runs.data {
-//        // Override --output that forge already has
-//        def args = new ArrayList<String>(programArguments.get());
-//        def outputIndex = args.indexOf('--output');
-//        args.set(outputIndex+1, file('src/generated/resources/').absolutePath);
-//        programArguments.set(args);
-//    }
-//}
 
 license {
     header = rootProject.file('codeformat/HEADER.txt')

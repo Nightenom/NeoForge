@@ -177,7 +177,9 @@ neoForge {
         //gameTestClient {} TODO: why? in userdev the normal client run type has gametests enabled
         data {
             data()
-            programArguments.addAll '--mod', 'neoforge'
+            programArguments.addAll '--mod', 'neoforge', '--flat', '--all', '--validate',
+                    '--existing', rootProject.file("src/main/resources").absolutePath,
+                    '--output', rootProject.file("src/generated/resources").absolutePath
         }
     }
 }
