@@ -706,17 +706,17 @@ public class NeoDevPlugin implements Plugin<Project> {
         // TODO: configure eclipse
 
         if (junit) {
-            var testTask = tasks.register("testJunit", Test.class);
+            var testTask = tasks.register("junitTest", Test.class);
 
             ModDevPlugin.setupTesting(
                     project,
                     neoDevBuildDir,
-                    writeNeoDevConfig,
-                    downloadAssets.flatMap(DownloadAssetsTask::getAssetPropertiesFile),
                     ideSyncTask,
-                    createArtifacts.get().getResourcesArtifact(),
-                    configureLegacyClasspath,
                     modulesConfiguration,
+                    writeNeoDevConfig,
+                    configureLegacyClasspath,
+                    createArtifacts.get().getResourcesArtifact(),
+                    downloadAssets.flatMap(DownloadAssetsTask::getAssetPropertiesFile),
                     testTask
             );
         }

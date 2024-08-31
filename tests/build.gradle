@@ -32,28 +32,13 @@ sourceSets {
         resources {
             srcDir file('src/generated/resources')
         }
-        compileClasspath += project(':neoforge').sourceSets.main.compileClasspath
-        compileClasspath += project(':neoforge').sourceSets.main.output
-        runtimeClasspath += project(':neoforge').sourceSets.main.runtimeClasspath
-        runtimeClasspath += project(':neoforge').sourceSets.main.output
     }
     junit {
-        compileClasspath += project(':neoforge').sourceSets.main.compileClasspath
-        compileClasspath += project(':neoforge').sourceSets.main.output
-        runtimeClasspath += project(':neoforge').sourceSets.main.runtimeClasspath
-        runtimeClasspath += project(':neoforge').sourceSets.main.output
     }
-}
-
-configurations {
-    localRuntime {
-        canBeResolved = false
-        canBeConsumed = true
-    }
-    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
+    implementation project(path: ':neoforge', configuration: 'runtimeElements')
     implementation(testframeworkProject)
 
     junitImplementation(platform("org.junit:junit-bom:${project.jupiter_api_version}"))
@@ -62,13 +47,19 @@ dependencies {
 
     junitImplementation("org.assertj:assertj-core:${project.assertj_core}")
     junitImplementation "net.neoforged.fancymodloader:junit-fml:${project.fancy_mod_loader_version}"
+    junitImplementation project(path: ':neoforge', configuration: 'runtimeElements')
     junitImplementation(testframeworkProject)
 
     compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 }
+// Required to fix compile classpath using an older junit version. Alternatively we could also just bump junit.
+configurations.junitCompileClasspath.shouldResolveConsistentlyWith configurations.junitRuntimeClasspath
 
-testJunit {
+junitTest {
     useJUnitPlatform()
+    classpath = sourceSets.junit.output + sourceSets.junit.runtimeClasspath
+    testClassesDirs = sourceSets.junit.output.classesDirs
+    outputs.upToDateWhen { false }
 }
 
 neoForge {
@@ -79,11 +70,14 @@ neoForge {
         testframework {
             sourceSet project(":testframework").sourceSets.main
         }
+        junit {
+            sourceSet sourceSets.junit
+        }
     }
 
     unitTest {
         // No need for enable(), the NeoDevPlugin already does it.
-        testedMod = project(":neoforge").neoForge.mods.minecraft
+        loadedMods = [ project(":neoforge").neoForge.mods.minecraft, mods.testframework, mods.junit ]
     }
 
     runs {
@@ -129,8 +123,8 @@ neoForge {
     }
 
     runs.configureEach {
-        // Add NeoForge and Minecraft (bother under the "minecraft" mod).
-        mods.append(neoforgeProject.neoForge.mods.minecraft)
+        // Add NeoForge and Minecraft (both under the "minecraft" mod), and exclude junit.
+        mods = [ neoforgeProject.neoForge.mods.minecraft, neoForge.mods.neotests, neoForge.mods.testframework ]
 
         gameDirectory.set project.file("runs/${it.name}") as File
     }
