@@ -112,6 +112,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var createSources = tasks.register("createSourcesArtifact", CreateMinecraftArtifactsTask.class, task -> {
             task.getNeoFormRuntime().from(neoFormRuntimeConfig);
             task.getArtifactManifestFile().set(createManifest.get().getManifestFile());
+            task.getArtifacts().from(neoFormRuntimeArtifactManifestNeoForm);
             task.getNeoFormArtifact().set(mcAndNeoFormVersion);
 
             var minecraftArtifactsDir = neoDevBuildDir.map(dir -> dir.dir("artifacts"));
@@ -194,6 +195,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var createArtifacts = tasks.register("createMinecraftArtifacts", CreateMinecraftArtifactsTask.class, task -> {
             task.getNeoFormRuntime().from(neoFormRuntimeConfig);
             task.getArtifactManifestFile().set(createManifest.get().getManifestFile());
+            task.getArtifacts().from(neoFormRuntimeArtifactManifestNeoForm);
             task.getNeoFormArtifact().set(mcAndNeoFormVersion);
 
             var minecraftArtifactsDir = neoDevBuildDir.map(dir -> dir.dir("artifacts"));
@@ -229,6 +231,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             task.getNeoFormArtifact().set(mcAndNeoFormVersion.map(v -> "net.neoforged:neoform:" + v + "@zip"));
             task.getNeoFormRuntime().from(neoFormRuntimeConfig);
             task.getArtifactManifestFile().set(createManifest.get().getManifestFile());
+            task.getArtifacts().from(neoFormRuntimeArtifactManifestNeoForm);
             task.getAssetPropertiesFile().set(neoDevBuildDir.map(dir -> dir.file("minecraft_assets.properties")));
         });
 
@@ -365,6 +368,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var createCleanArtifacts = tasks.register("createCleanArtifacts", CreateCleanArtifacts.class, task -> {
             task.getNeoFormRuntime().from(neoFormRuntimeConfig);
             task.getNeoFormArtifact().set(mcAndNeoFormVersion);
+            task.getArtifacts().from(neoFormRuntimeArtifactManifestNeoForm);
 
             var cleanArtifactsDir = neoDevBuildDir.map(dir -> dir.dir("artifacts/clean"));
             task.getCleanClientJar().set(cleanArtifactsDir.map(dir -> dir.file("client.jar")));
