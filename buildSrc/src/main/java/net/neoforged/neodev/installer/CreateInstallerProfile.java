@@ -15,6 +15,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.wrapper.Install;
 import org.jetbrains.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -55,6 +56,9 @@ public abstract class CreateInstallerProfile extends DefaultTask {
     @Input
     public abstract MapProperty<InstallerProcessor, List<String>> getProcessorClasspaths();
 
+    @Input
+    public abstract MapProperty<InstallerProcessor, String> getProcessorGavs();
+
     @InputFile
     public abstract RegularFileProperty getUniversalJar();
 
@@ -62,7 +66,7 @@ public abstract class CreateInstallerProfile extends DefaultTask {
     public abstract RegularFileProperty getInstallerProfile();
 
     private void addProcessor(List<ProcessorEntry> processors, @Nullable List<String> sides, InstallerProcessor processor, List<String> args) {
-        processors.add(new ProcessorEntry(sides, processor.gav, getProcessorClasspaths().get().get(processor), args));
+        processors.add(new ProcessorEntry(sides, getProcessorGavs().get().get(processor), getProcessorClasspaths().get().get(processor), args));
     }
 
     @TaskAction

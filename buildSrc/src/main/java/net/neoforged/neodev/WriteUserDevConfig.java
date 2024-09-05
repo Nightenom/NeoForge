@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 abstract class WriteUserDevConfig extends DefaultTask {
-    private static final String BINPATCHER_VERSION = "1.1.1"; // TODO: move somewhere else
-
     @Inject
     public WriteUserDevConfig() {}
 
@@ -53,6 +51,9 @@ abstract class WriteUserDevConfig extends DefaultTask {
     @Input
     abstract ListProperty<String> getIgnoreList();
 
+    @Input
+    abstract Property<String> getBinpatcherGav();
+
     @OutputFile
     abstract RegularFileProperty getUserDevConfig();
 
@@ -64,7 +65,7 @@ abstract class WriteUserDevConfig extends DefaultTask {
                 "ats/",
                 "joined.lzma",
                 new BinpatcherConfig(
-                        "net.minecraftforge:binarypatcher:%s:fatjar".formatted(BINPATCHER_VERSION),
+                        getBinpatcherGav().get(),
                         List.of("--clean", "{clean}", "--output", "{output}", "--apply", "{patch}")),
                 "patches/",
                 "net.neoforged:neoforge:%s:sources".formatted(getNeoForgeVersion().get()),

@@ -1,16 +1,16 @@
 package net.neoforged.neodev.installer;
 
-import net.neoforged.neodev.Constants;
+import net.neoforged.neodev.Tools;
 
 public enum InstallerProcessor {
-    BINPATCHER(Constants.BINPATCHER),
-    FART(Constants.FART),
-    INSTALLERTOOLS(Constants.INSTALLERTOOLS),
-    JARSPLITTER(Constants.JARSPLITTER);
+    BINPATCHER(Tools.BINPATCHER_MCF),
+    FART(Tools.AUTO_RENAMING_TOOL),
+    INSTALLERTOOLS(Tools.INSTALLERTOOLS),
+    JARSPLITTER(Tools.JARSPLITTER);
 
-    public final String gav;
+    public final Tools tool;
 
-    InstallerProcessor(String gav) {
-        this.gav = gav;
+    InstallerProcessor(Tools tool) {
+        this.tool = tool;
     }
 }
