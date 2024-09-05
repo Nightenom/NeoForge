@@ -1,12 +1,12 @@
 package net.neoforged.neodev;
 
-import codechicken.diffpatch.cli.CliOperation;
-import codechicken.diffpatch.cli.DiffOperation;
-import codechicken.diffpatch.util.LoggingOutputStream;
+import io.codechicken.diffpatch.cli.CliOperation;
+import io.codechicken.diffpatch.cli.DiffOperation;
+import io.codechicken.diffpatch.util.Input.MultiInput;
+import io.codechicken.diffpatch.util.Output.MultiOutput;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputFile;
@@ -34,12 +34,12 @@ abstract class GenerateSourcePatches extends DefaultTask {
     @TaskAction
     public void generateSourcePatches() throws IOException {
         var builder = DiffOperation.builder()
-                .logTo(new LoggingOutputStream(getLogger(), LogLevel.LIFECYCLE))
-                .aPath(getOriginalJar().get().getAsFile().toPath())
-                .bPath(getModifiedSources().get().getAsFile().toPath())
-                .outputPath(getPatchesJar().get().getAsFile().toPath()) // TODO: do we need ArchiveFormat?
+                .logTo(getLogger()::lifecycle)
+                .baseInput(MultiInput.detectedArchive(getOriginalJar().get().getAsFile().toPath()))
+                .changedInput(MultiInput.folder(getModifiedSources().get().getAsFile().toPath()))
+                .patchesOutput(MultiOutput.detectedArchive(getPatchesJar().get().getAsFile().toPath()))
                 .autoHeader(true)
-                .level(codechicken.diffpatch.util.LogLevel.WARN)
+                .level(io.codechicken.diffpatch.util.LogLevel.WARN)
                 .summary(false)
                 .aPrefix("a/")
                 .bPrefix("b/")

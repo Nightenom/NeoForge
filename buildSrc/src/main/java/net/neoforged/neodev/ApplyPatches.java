@@ -1,14 +1,13 @@
 package net.neoforged.neodev;
 
-import codechicken.diffpatch.cli.DiffOperation;
-import codechicken.diffpatch.cli.PatchOperation;
-import codechicken.diffpatch.util.LoggingOutputStream;
-import codechicken.diffpatch.util.PatchMode;
+import io.codechicken.diffpatch.cli.PatchOperation;
+import io.codechicken.diffpatch.util.Input.MultiInput;
+import io.codechicken.diffpatch.util.Output.MultiOutput;
+import io.codechicken.diffpatch.util.PatchMode;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -51,15 +50,15 @@ abstract class ApplyPatches extends DefaultTask {
         var isUpdating = getIsUpdating().get();
 
         var builder = PatchOperation.builder()
-                .logTo(new LoggingOutputStream(getLogger(), LogLevel.LIFECYCLE))
-                .basePath(getOriginalJar().get().getAsFile().toPath())
-                .patchesPath(getPatchesFolder().get().getAsFile().toPath())
-                .outputPath(getPatchedJar().get().getAsFile().toPath())
-                .rejectsPath(getRejectsFolder().get().getAsFile().toPath())
+                .logTo(getLogger()::lifecycle)
+                .baseInput(MultiInput.detectedArchive(getOriginalJar().get().getAsFile().toPath()))
+                .patchesInput(MultiInput.folder(getPatchesFolder().get().getAsFile().toPath()))
+                .patchedOutput(MultiOutput.detectedArchive(getPatchedJar().get().getAsFile().toPath()))
+                .rejectsOutput(MultiOutput.folder(getRejectsFolder().get().getAsFile().toPath()))
                 .mode(isUpdating ? PatchMode.FUZZY : PatchMode.ACCESS)
                 .aPrefix("a/")
                 .bPrefix("b/")
-                .level(isUpdating ? codechicken.diffpatch.util.LogLevel.ALL : codechicken.diffpatch.util.LogLevel.WARN)
+                .level(isUpdating ? io.codechicken.diffpatch.util.LogLevel.ALL : io.codechicken.diffpatch.util.LogLevel.WARN)
                 .minFuzz(0.9f); // The 0.5 default in DiffPatch is too low.
 
         var result = builder.build().operate();
