@@ -234,7 +234,7 @@ public class NeoDevPlugin implements Plugin<Project> {
                     return results.stream().map(r -> r.getFile().getName()).toList();
                 }));
                 task.getIgnoreList().addAll("client-extra", "neoforge-");
-                task.getBinpatcherGav().set(Tools.BINPATCHER_MCF.asGav(project));
+                task.getBinpatcherGav().set(Tools.BINPATCHER.asGav(project));
             });
         }
 
@@ -353,7 +353,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             files.setCanBeConsumed(false);
             files.setCanBeResolved(true);
             files.setTransitive(false);
-            files.getDependencies().add(Tools.BINPATCHER_MCF.asDependency(project));
+            files.getDependencies().add(Tools.BINPATCHER.asDependency(project));
         });
         var generateMergedBinPatches = tasks.register("generateMergedBinPatches", GenerateBinaryPatches.class, task -> {
             task.classpath(binpatcherConfig);

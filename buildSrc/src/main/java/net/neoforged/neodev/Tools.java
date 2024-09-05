@@ -5,8 +5,6 @@ import org.gradle.api.artifacts.Dependency;
 
 public enum Tools {
     JST("net.neoforged.jst:jst-cli-bundle:%s", "jst_version"),
-    // TODO: should be replaced by our binarypatcher, no?
-    BINPATCHER_MCF("net.minecraftforge:binarypatcher:%s:fatjar", "binpatcher_version"),
     LEGACYINSTALLER("net.neoforged:legacyinstaller:%s:shrunk", "legacyinstaller_version"),
     AUTO_RENAMING_TOOL("net.neoforged:AutoRenamingTool:%s:all", "art_version"),
     INSTALLERTOOLS("net.neoforged.installertools:installertools:%s", "installertools_version"),
