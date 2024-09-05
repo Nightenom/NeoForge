@@ -3,7 +3,6 @@ plugins {
     id 'maven-publish'
     id 'com.diffplug.spotless'
     id 'net.neoforged.licenser'
-//    id 'net.neoforged.gradle.platform'
     id 'neoforge.formatting-conventions'
 }
 

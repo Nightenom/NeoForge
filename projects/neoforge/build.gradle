@@ -174,7 +174,6 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
         }
-        //gameTestClient {} TODO: why? in userdev the normal client run type has gametests enabled
         data {
             data()
             programArguments.addAll '--mod', 'neoforge', '--flat', '--all', '--validate',

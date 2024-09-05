@@ -7,10 +7,6 @@ plugins {
 
 plugins.getPlugin(NeoDevPlugin).configureBase(project)
 
-//dynamicProject {
-//    neoform("${project.minecraft_version}-${project.neoform_version}")
-//}
-
 dependencies {
     implementation("net.neoforged:neoform:${project.minecraft_version}-${project.neoform_version}") {
         capabilities {
