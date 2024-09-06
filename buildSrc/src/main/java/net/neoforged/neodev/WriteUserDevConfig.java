@@ -1,7 +1,6 @@
 package net.neoforged.neodev;
 
 import com.google.gson.GsonBuilder;
-import net.neoforged.moddevgradle.internal.UserDevRunType;
 import net.neoforged.moddevgradle.internal.utils.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
@@ -180,3 +179,16 @@ record UserDevConfig(
 record BinpatcherConfig(
         String version,
         List<String> args) {}
+
+record UserDevRunType(
+        boolean singleInstance,
+        String main,
+        List<String> args,
+        List<String> jvmArgs,
+        boolean client,
+        boolean server,
+        boolean dataGenerator,
+        boolean gameTest,
+        boolean unitTest,
+        Map<String, String> env,
+        Map<String, String> props) {}

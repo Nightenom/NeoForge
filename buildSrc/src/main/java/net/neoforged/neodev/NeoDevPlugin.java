@@ -10,9 +10,7 @@ import net.neoforged.moddevgradle.internal.ModDevPlugin;
 import net.neoforged.moddevgradle.internal.NeoFormRuntimeTask;
 import net.neoforged.moddevgradle.internal.OperatingSystemDisambiguation;
 import net.neoforged.moddevgradle.internal.PrepareRun;
-import net.neoforged.moddevgradle.internal.RunUtils;
 import net.neoforged.moddevgradle.internal.utils.DependencyUtils;
-import net.neoforged.moddevgradle.internal.utils.ExtensionUtils;
 import net.neoforged.neodev.installer.CreateArgsFile;
 import net.neoforged.neodev.installer.CreateInstallerProfile;
 import net.neoforged.neodev.installer.CreateLauncherProfile;
@@ -28,6 +26,7 @@ import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -191,7 +190,7 @@ public class NeoDevPlugin implements Plugin<Project> {
 
         var localRuntime = configurations.create("localRuntime", config -> {
             config.withDependencies(dependencies -> {
-                dependencies.add(dependencyFactory.create(RunUtils.DEV_LAUNCH_GAV));
+                dependencies.add(Tools.DEVLAUNCH.asDependency(project));
             });
         });
 
@@ -318,7 +317,8 @@ public class NeoDevPlugin implements Plugin<Project> {
                         "net/neoforged/neoforge/versions/neoform/");
             });
         });
-        ModDevPlugin.setupJarJar(project, ExtensionUtils.getSourceSets(project).getByName("main"), "universalJar");
+        var mainSourceSet = project.getExtensions().getByType(SourceSetContainer.class).getByName("main");
+        ModDevPlugin.setupJarJar(project, mainSourceSet, "universalJar");
 
         var createCleanArtifacts = tasks.register("createCleanArtifacts", CreateCleanArtifacts.class, task -> {
             var cleanArtifactsDir = neoDevBuildDir.map(dir -> dir.dir("artifacts/clean"));
@@ -609,7 +609,7 @@ public class NeoDevPlugin implements Plugin<Project> {
 
         var localRuntime = project.getConfigurations().create("localRuntime", config -> {
             config.withDependencies(dependencies -> {
-                dependencies.add(dependencyFactory.create(RunUtils.DEV_LAUNCH_GAV));
+                dependencies.add(Tools.DEVLAUNCH.asDependency(project));
             });
         });
 
