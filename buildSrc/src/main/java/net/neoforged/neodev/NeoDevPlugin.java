@@ -89,11 +89,9 @@ public class NeoDevPlugin implements Plugin<Project> {
         var neoFormRuntimeArtifactManifestNeoForm = configurations.create("neoFormRuntimeArtifactManifestNeoForm", spec -> {
             spec.setCanBeConsumed(false);
             spec.setCanBeResolved(true);
-            spec.withDependencies(dependencies -> {
-                dependencies.addLater(mcAndNeoFormVersion.map(version -> {
-                    return dependencyFactory.create("net.neoforged:neoform:" + version);
-                }));
-            });
+            spec.getDependencies().addLater(mcAndNeoFormVersion.map(version -> {
+                return dependencyFactory.create("net.neoforged:neoform:" + version);
+            }));
         });
 
         var createManifest = tasks.register("createArtifactManifest", CreateArtifactManifestTask.class, task -> {
@@ -140,15 +138,13 @@ public class NeoDevPlugin implements Plugin<Project> {
         var neoFormDependencies = configurations.create("neoFormDependencies", spec -> {
             spec.setCanBeConsumed(false);
             spec.setCanBeResolved(true);
-            spec.withDependencies(dependencies -> {
-                dependencies.addLater(mcAndNeoFormVersion.map(version -> {
-                    var dep = dependencyFactory.create("net.neoforged:neoform:" + version).capabilities(caps -> {
-                        caps.requireCapability("net.neoforged:neoform-dependencies");
-                    });
-                    dep.endorseStrictVersions();
-                    return dep;
-                }));
-            });
+            spec.getDependencies().addLater(mcAndNeoFormVersion.map(version -> {
+                var dep = dependencyFactory.create("net.neoforged:neoform:" + version).capabilities(caps -> {
+                    caps.requireCapability("net.neoforged:neoform-dependencies");
+                });
+                dep.endorseStrictVersions();
+                return dep;
+            }));
         });
 
         var jstConfiguration = configurations.create("javaSourceTransformer", files -> {
@@ -189,9 +185,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         });
 
         var localRuntime = configurations.create("localRuntime", config -> {
-            config.withDependencies(dependencies -> {
-                dependencies.add(Tools.DEVLAUNCH.asDependency(project));
-            });
+            config.getDependencies().add(Tools.DEVLAUNCH.asDependency(project));
         });
 
         var installerConfiguration = project.getConfigurations().create("installer");
@@ -256,11 +250,9 @@ public class NeoDevPlugin implements Plugin<Project> {
                     modulesConfiguration,
                     writeNeoDevConfig,
                     spec -> {
-                        spec.withDependencies(set -> {
-                            set.addLater(mcAndNeoFormVersion.map(v -> dependencyFactory.create("net.neoforged:neoform:" + v).capabilities(caps -> {
-                                caps.requireCapability("net.neoforged:neoform-dependencies");
-                            })));
-                        });
+                        spec.getDependencies().addLater(mcAndNeoFormVersion.map(v -> dependencyFactory.create("net.neoforged:neoform:" + v).capabilities(caps -> {
+                            caps.requireCapability("net.neoforged:neoform-dependencies");
+                        })));
                         spec.extendsFrom(installerLibrariesConfiguration, modulesConfiguration, userDevCompileOnlyConfiguration);
                     },
                     additionalClasspath,
@@ -598,9 +590,7 @@ public class NeoDevPlugin implements Plugin<Project> {
 
         // TODO: this is temporary
         var modulesConfiguration = project.getConfigurations().create("moduleOnly", spec -> {
-            spec.withDependencies(set -> {
-                set.add(projectDep(dependencyFactory, neoForgeProject, "moduleOnly"));
-            });
+            spec.getDependencies().add(projectDep(dependencyFactory, neoForgeProject, "moduleOnly"));
         });
 
         var downloadAssets = neoForgeProject.getTasks().named("downloadAssets", DownloadAssetsTask.class);
@@ -608,9 +598,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var writeNeoDevConfig = neoForgeProject.getTasks().named("writeNeoDevConfig", WriteUserDevConfig.class);
 
         var localRuntime = project.getConfigurations().create("localRuntime", config -> {
-            config.withDependencies(dependencies -> {
-                dependencies.add(Tools.DEVLAUNCH.asDependency(project));
-            });
+            config.getDependencies().add(Tools.DEVLAUNCH.asDependency(project));
         });
 
         var ideSyncTask = tasks.register("neoForgeIdeSync");
@@ -623,16 +611,12 @@ public class NeoDevPlugin implements Plugin<Project> {
         });
 
         Consumer<Configuration> configureLegacyClasspath = spec -> {
-            spec.withDependencies(set -> {
-                set.addLater(mcAndNeoFormVersion.map(v -> dependencyFactory.create("net.neoforged:neoform:" + v).capabilities(caps -> {
-                    caps.requireCapability("net.neoforged:neoform-dependencies");
-                })));
-            });
-            spec.withDependencies(set -> {
-                set.add(projectDep(dependencyFactory, neoForgeProject, "installer"));
-                set.add(projectDep(dependencyFactory, neoForgeProject, "moduleOnly"));
-                set.add(projectDep(dependencyFactory, neoForgeProject, "userdevCompileOnly"));
-            });
+            spec.getDependencies().addLater(mcAndNeoFormVersion.map(v -> dependencyFactory.create("net.neoforged:neoform:" + v).capabilities(caps -> {
+                caps.requireCapability("net.neoforged:neoform-dependencies");
+            })));
+            spec.getDependencies().add(projectDep(dependencyFactory, neoForgeProject, "installer"));
+            spec.getDependencies().add(projectDep(dependencyFactory, neoForgeProject, "moduleOnly"));
+            spec.getDependencies().add(projectDep(dependencyFactory, neoForgeProject, "userdevCompileOnly"));
         };
 
         Map<RunModel, TaskProvider<PrepareRun>> prepareRunTasks = new IdentityHashMap<>();
