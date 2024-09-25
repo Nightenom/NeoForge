@@ -124,7 +124,7 @@ neoForge {
 
     runs.configureEach {
         // Add NeoForge and Minecraft (both under the "minecraft" mod), and exclude junit.
-        mods = [ neoforgeProject.neoForge.mods.minecraft, neoForge.mods.neotests, neoForge.mods.testframework ]
+        loadedMods = [neoforgeProject.neoForge.mods.minecraft, mods.neotests, mods.testframework]
 
         gameDirectory.set project.file("runs/${it.name}") as File
     }
