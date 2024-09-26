@@ -126,7 +126,6 @@ neoDev {
 }
 
 neoDevTest {
-    // No need for enable(), the NeoDevPlugin already does it.
     loadedMods = [ project(":neoforge").neoDev.mods.minecraft, neoDev.mods.testframework, neoDev.mods.junit ]
 }
 
