@@ -108,11 +108,10 @@ public class NeoDevPlugin implements Plugin<Project> {
         });
 
         var createSources = tasks.register("createSourceArtifacts", CreateSourceArtifacts.class, task -> {
-            task.getNeoFormArtifact().set(mcAndNeoFormVersion);
-
             var minecraftArtifactsDir = neoDevBuildDir.map(dir -> dir.dir("artifacts"));
             task.getSourcesArtifact().set(minecraftArtifactsDir.map(dir -> dir.file("base-sources.jar")));
             task.getResourcesArtifact().set(minecraftArtifactsDir.map(dir -> dir.file("minecraft-local-resources-aka-client-extra.jar")));
+            task.getNeoFormArtifact().set(mcAndNeoFormVersion);
         });
 
         return createSources;
@@ -133,7 +132,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var neoForgeVersion = project.provider(() -> (String) project.getVersion()); // TODO: is this correct?
         var mcAndNeoFormVersion = minecraftVersion.zip(rawNeoFormVersion, (mc, nf) -> mc + "-" + nf);
 
-        var extension = project.getExtensions().create(NeoForgeExtension.NAME, NeoForgeExtension.class);
+        var extension = project.getExtensions().create(NeoDevExtension.NAME, NeoDevExtension.class);
 
         var neoFormDependencies = configurations.create("neoFormDependencies", spec -> {
             spec.setCanBeConsumed(false);
@@ -262,7 +261,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             ideSyncTask.configure(task -> task.dependsOn(prepareRunTask));
         });
 
-        ModDevPlugin.configureIntelliJModel(project, ideSyncTask, extension, prepareRunTasks);
+        ModDevPlugin.configureIntelliJModel(project, ideSyncTask, prepareRunTasks, extension.getRuns());
 
         // TODO: configure eclipse
 
@@ -319,6 +318,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             task.getCleanServerJar().set(cleanArtifactsDir.map(dir -> dir.file("server.jar")));
             task.getCleanJoinedJar().set(cleanArtifactsDir.map(dir -> dir.file("joined.jar")));
             task.getMergedMappings().set(cleanArtifactsDir.map(dir -> dir.file("merged-mappings.txt")));
+            task.getNeoFormArtifact().set(mcAndNeoFormVersion);
         });
 
         var artConfig = configurations.create("art", files -> {
@@ -551,7 +551,7 @@ public class NeoDevPlugin implements Plugin<Project> {
 
         project.getExtensions().getByType(JavaPluginExtension.class).withSourcesJar();
         final TaskProvider<? extends Jar> sourcesJarProvider = project.getTasks().named("sourcesJar", Jar.class);
-        sourcesJarProvider.configure(task ->  {
+        sourcesJarProvider.configure(task -> {
             task.exclude("net/minecraft/**");
             task.exclude("com/**");
             task.exclude("mcp/**");
@@ -582,7 +582,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var tasks = project.getTasks();
         var neoDevBuildDir = project.getLayout().getBuildDirectory().dir("neodev");
 
-        var extension = project.getExtensions().create(NeoForgeExtension.NAME, NeoForgeExtension.class);
+        var extension = project.getExtensions().create(NeoDevExtension.NAME, NeoDevExtension.class);
 
         var rawNeoFormVersion = project.getProviders().gradleProperty("neoform_version");
         var minecraftVersion = project.getProviders().gradleProperty("minecraft_version");
@@ -636,15 +636,18 @@ public class NeoDevPlugin implements Plugin<Project> {
             ideSyncTask.configure(task -> task.dependsOn(prepareRunTask));
         });
 
-        ModDevPlugin.configureIntelliJModel(project, ideSyncTask, extension, prepareRunTasks);
+        ModDevPlugin.configureIntelliJModel(project, ideSyncTask, prepareRunTasks, extension.getRuns());
 
         // TODO: configure eclipse
 
         if (junit) {
-            var testTask = tasks.register("junitTest", Test.class);
+            var testExtension = project.getExtensions().create(NeoDevTestExtension.NAME, NeoDevTestExtension.class);
+            var testTask = tasks.register("junitTest", Test.class, test -> test.setGroup("verification"));
 
             ModDevPlugin.setupTesting(
                     project,
+                    testExtension.getLoadedMods(),
+                    testExtension.getTestedMod(),
                     neoDevBuildDir,
                     ideSyncTask,
                     modulesConfiguration,

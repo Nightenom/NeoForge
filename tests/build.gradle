@@ -70,7 +70,7 @@ junitTest {
     outputs.upToDateWhen { false }
 }
 
-neoForge {
+neoDev {
     mods {
         neotests {
             sourceSet sourceSets.main
@@ -81,11 +81,6 @@ neoForge {
         junit {
             sourceSet sourceSets.junit
         }
-    }
-
-    unitTest {
-        // No need for enable(), the NeoDevPlugin already does it.
-        loadedMods = [ project(":neoforge").neoForge.mods.minecraft, mods.testframework, mods.junit ]
     }
 
     runs {
@@ -124,10 +119,15 @@ neoForge {
 
     runs.configureEach {
         // Add NeoForge and Minecraft (both under the "minecraft" mod), and exclude junit.
-        loadedMods = [neoforgeProject.neoForge.mods.minecraft, mods.neotests, mods.testframework]
+        loadedMods = [neoforgeProject.neoDev.mods.minecraft, mods.neotests, mods.testframework]
 
         gameDirectory.set project.file("runs/${it.name}") as File
     }
+}
+
+neoDevTest {
+    // No need for enable(), the NeoDevPlugin already does it.
+    loadedMods = [ project(":neoforge").neoDev.mods.minecraft, neoDev.mods.testframework, neoDev.mods.junit ]
 }
 
 license {

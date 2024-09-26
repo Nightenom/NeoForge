@@ -62,7 +62,7 @@ sourceSets {
 //    }
 //}
 
-neoForge {
+neoDev {
     mods {
         minecraft {
             sourceSet sourceSets.main
@@ -160,7 +160,7 @@ dependencies {
     userdevTestImplementation("net.neoforged.fancymodloader:junit-fml:${project.fancy_mod_loader_version}")
 }
 
-neoForge {
+neoDev {
     runs {
         configureEach {
             gameDirectory.set project.file("run/${it.name}") as File
