@@ -4,7 +4,7 @@ import net.neoforged.moddevgradle.dsl.NeoFormRuntime;
 import net.neoforged.moddevgradle.dsl.RunModel;
 import net.neoforged.moddevgradle.internal.DistributionDisambiguation;
 import net.neoforged.moddevgradle.internal.ModDevPlugin;
-import net.neoforged.moddevgradle.internal.NeoFormRuntimeTask;
+import net.neoforged.moddevgradle.tasks.NeoFormRuntimeTask;
 import net.neoforged.moddevgradle.internal.OperatingSystemDisambiguation;
 import net.neoforged.moddevgradle.internal.PrepareRun;
 import net.neoforged.moddevgradle.internal.utils.DependencyUtils;

@@ -1,6 +1,6 @@
 package net.neoforged.neodev;
 
-import net.neoforged.moddevgradle.internal.NeoFormRuntimeTask;
+import net.neoforged.moddevgradle.tasks.NeoFormRuntimeTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
