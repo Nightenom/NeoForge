@@ -1,10 +1,7 @@
 package net.neoforged.neodev;
 
-import net.neoforged.moddevgradle.dsl.NeoForgeExtension;
 import net.neoforged.moddevgradle.dsl.NeoFormRuntime;
 import net.neoforged.moddevgradle.dsl.RunModel;
-import net.neoforged.moddevgradle.internal.ArtifactManifestEntry;
-import net.neoforged.moddevgradle.internal.CreateArtifactManifestTask;
 import net.neoforged.moddevgradle.internal.DistributionDisambiguation;
 import net.neoforged.moddevgradle.internal.ModDevPlugin;
 import net.neoforged.moddevgradle.internal.NeoFormRuntimeTask;
@@ -85,7 +82,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             });
         });
 
-        // Configuration for all artifact that should be passed to NFRT to prevent repeated downloads
+        // Configuration for all artifacts that should be passed to NFRT to prevent repeated downloads
         var neoFormRuntimeArtifactManifestNeoForm = configurations.create("neoFormRuntimeArtifactManifestNeoForm", spec -> {
             spec.setCanBeConsumed(false);
             spec.setCanBeResolved(true);
@@ -94,27 +91,17 @@ public class NeoDevPlugin implements Plugin<Project> {
             }));
         });
 
-        var createManifest = tasks.register("createArtifactManifest", CreateArtifactManifestTask.class, task -> {
-            task.getNeoForgeModDevArtifacts().addAll(neoFormRuntimeArtifactManifestNeoForm.getIncoming().getArtifacts().getResolvedArtifacts().map(results -> {
-                return results.stream().map(ArtifactManifestEntry::new).collect(Collectors.toSet());
-            }));
-            task.getManifestFile().set(neoDevBuildDir.map(dir -> dir.file("neoform_artifact_manifest.properties")));
-        });
-
         tasks.withType(NeoFormRuntimeTask.class, task -> {
             task.getNeoFormRuntime().from(neoFormRuntimeConfig);
-            task.getArtifactManifestFile().set(createManifest.get().getManifestFile());
-            task.getArtifacts().from(neoFormRuntimeArtifactManifestNeoForm);
+            task.addArtifactsToManifest(neoFormRuntimeArtifactManifestNeoForm);
         });
 
-        var createSources = tasks.register("createSourceArtifacts", CreateSourceArtifacts.class, task -> {
+        return tasks.register("createSourceArtifacts", CreateSourceArtifacts.class, task -> {
             var minecraftArtifactsDir = neoDevBuildDir.map(dir -> dir.dir("artifacts"));
             task.getSourcesArtifact().set(minecraftArtifactsDir.map(dir -> dir.file("base-sources.jar")));
             task.getResourcesArtifact().set(minecraftArtifactsDir.map(dir -> dir.file("minecraft-local-resources-aka-client-extra.jar")));
             task.getNeoFormArtifact().set(mcAndNeoFormVersion);
         });
-
-        return createSources;
     }
 
     public void configureNeoForge(Project project) {
@@ -643,6 +630,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         if (junit) {
             var testExtension = project.getExtensions().create(NeoDevTestExtension.NAME, NeoDevTestExtension.class);
             var testTask = tasks.register("junitTest", Test.class, test -> test.setGroup("verification"));
+            tasks.named("check").configure(task -> task.dependsOn(testTask));
 
             ModDevPlugin.setupTesting(
                     project,
