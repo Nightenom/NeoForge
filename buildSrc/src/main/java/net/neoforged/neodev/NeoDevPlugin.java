@@ -4,6 +4,8 @@ import net.neoforged.moddevgradle.dsl.NeoFormRuntime;
 import net.neoforged.moddevgradle.dsl.RunModel;
 import net.neoforged.moddevgradle.internal.DistributionDisambiguation;
 import net.neoforged.moddevgradle.internal.ModDevPlugin;
+import net.neoforged.moddevgradle.tasks.CreateMinecraftArtifactsTask;
+import net.neoforged.moddevgradle.tasks.DownloadAssetsTask;
 import net.neoforged.moddevgradle.tasks.NeoFormRuntimeTask;
 import net.neoforged.moddevgradle.internal.OperatingSystemDisambiguation;
 import net.neoforged.moddevgradle.internal.PrepareRun;
@@ -54,7 +56,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var createSources = configureMinecraftDecompilation(project);
 
         project.getTasks().register("setup", Sync.class, task -> {
-            task.from(project.zipTree(createSources.flatMap(CreateSourceArtifacts::getSourcesArtifact)));
+            task.from(project.zipTree(createSources.flatMap(CreateMinecraftArtifactsTask::getSourcesArtifact)));
             task.into(project.file("src/main/java/"));
         });
     }
@@ -62,7 +64,7 @@ public class NeoDevPlugin implements Plugin<Project> {
     /**
      * Sets up NFRT, and creates the sources and resources artifacts.
      */
-    private TaskProvider<CreateSourceArtifacts> configureMinecraftDecompilation(Project project) {
+    private TaskProvider<CreateMinecraftArtifactsTask> configureMinecraftDecompilation(Project project) {
         var configurations = project.getConfigurations();
         var dependencyFactory = project.getDependencyFactory();
         var tasks = project.getTasks();
@@ -96,11 +98,11 @@ public class NeoDevPlugin implements Plugin<Project> {
             task.addArtifactsToManifest(neoFormRuntimeArtifactManifestNeoForm);
         });
 
-        return tasks.register("createSourceArtifacts", CreateSourceArtifacts.class, task -> {
+        return tasks.register("createSourceArtifacts", CreateMinecraftArtifactsTask.class, task -> {
             var minecraftArtifactsDir = neoDevBuildDir.map(dir -> dir.dir("artifacts"));
             task.getSourcesArtifact().set(minecraftArtifactsDir.map(dir -> dir.file("base-sources.jar")));
             task.getResourcesArtifact().set(minecraftArtifactsDir.map(dir -> dir.file("minecraft-local-resources-aka-client-extra.jar")));
-            task.getNeoFormArtifact().set(mcAndNeoFormVersion);
+            task.getNeoFormArtifact().set(mcAndNeoFormVersion.map(version -> "net.neoforged:neoform:" + version + "@zip"));
         });
     }
 
@@ -144,7 +146,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         var atFile = project.getRootProject().file("src/main/resources/META-INF/accesstransformer.cfg");
         var applyAt = tasks.register("applyAccessTransformer", ApplyAccessTransformer.class, task -> {
             task.classpath(jstConfiguration);
-            task.getInputJar().set(createSourceArtifacts.flatMap(CreateSourceArtifacts::getSourcesArtifact));
+            task.getInputJar().set(createSourceArtifacts.flatMap(CreateMinecraftArtifactsTask::getSourcesArtifact));
             task.getAccessTransformer().set(atFile);
             task.getOutputJar().set(neoDevBuildDir.map(dir -> dir.file("artifacts/access-transformed-sources.jar")));
             task.getLibraries().from(neoFormDependencies);
@@ -305,7 +307,7 @@ public class NeoDevPlugin implements Plugin<Project> {
             task.getCleanServerJar().set(cleanArtifactsDir.map(dir -> dir.file("server.jar")));
             task.getCleanJoinedJar().set(cleanArtifactsDir.map(dir -> dir.file("joined.jar")));
             task.getMergedMappings().set(cleanArtifactsDir.map(dir -> dir.file("merged-mappings.txt")));
-            task.getNeoFormArtifact().set(mcAndNeoFormVersion);
+            task.getNeoFormArtifact().set(mcAndNeoFormVersion.map(version -> "net.neoforged:neoform:" + version + "@zip"));
         });
 
         var artConfig = configurations.create("art", files -> {
@@ -581,7 +583,7 @@ public class NeoDevPlugin implements Plugin<Project> {
         });
 
         var downloadAssets = neoForgeProject.getTasks().named("downloadAssets", DownloadAssetsTask.class);
-        var createArtifacts = neoForgeProject.getTasks().named("createSourceArtifacts", CreateSourceArtifacts.class);
+        var createArtifacts = neoForgeProject.getTasks().named("createSourceArtifacts", CreateMinecraftArtifactsTask.class);
         var writeNeoDevConfig = neoForgeProject.getTasks().named("writeNeoDevConfig", WriteUserDevConfig.class);
 
         var localRuntime = project.getConfigurations().create("localRuntime", config -> {
